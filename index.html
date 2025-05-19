@@ -2,294 +2,126 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>UNITARCHIVE_03</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UNIT TERMINAL</title>
   <style>
-    /* Terminal style + heavy glitch */
-
     body {
       background-color: black;
+      color: #00ffcc;
+      font-family: monospace;
       margin: 0;
-      padding: 0;
-      font-family: 'Courier New', Courier, monospace;
-      color: #00ff00;
+      padding: 20px;
       overflow: hidden;
     }
-
     #terminal {
-      padding: 20px;
       white-space: pre-wrap;
-      min-height: 100vh;
-      animation: flicker 2s infinite;
-      text-shadow: 0 0 2px #0f0, 0 0 5px #0f0;
-      position: relative;
+      line-height: 1.4;
+      height: 90vh;
+      overflow-y: auto;
     }
-
-    pre {
-      margin: 0;
-      font-size: 1rem;
+    #input {
+      background: black;
+      border: none;
+      color: #00ffcc;
+      font-family: monospace;
+      font-size: 1em;
+      width: 100%;
+      outline: none;
     }
-
-    .cursor {
-      color: white;
-      animation: blink 1s steps(1) infinite;
+    .cursor::after {
+      content: "_";
+      animation: blink 1s step-start infinite;
     }
-
-    .command {
-      color: #55ff55;
-      font-weight: bold;
-    }
-
-    input#hidden-input {
-      position: absolute;
-      top: -9999px;
-    }
-
-    /* Blinking Cursor */
     @keyframes blink {
-      0%, 100% { opacity: 1; }
       50% { opacity: 0; }
-    }
-
-    /* Terminal Glitch Flicker */
-    @keyframes flicker {
-      0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
-        opacity: 1;
-      }
-      20%, 24%, 55% {
-        opacity: 0.1;
-      }
-    }
-
-    /* Occasional character distortion */
-    #terminal.glitch::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -2px;
-      right: 0;
-      bottom: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        rgba(0, 255, 0, 0.05),
-        rgba(0, 255, 0, 0.05) 1px,
-        transparent 1px,
-        transparent 2px
-      );
-      pointer-events: none;
-      z-index: 1;
-      animation: glitch-flicker 0.3s infinite;
-    }
-
-    /* Additional flicker for corruption */
-    @keyframes glitch-flicker {
-      0%, 100% { opacity: 0.1; transform: translateX(0); }
-      10% { opacity: 0.3; transform: translateX(-1px); }
-      20% { opacity: 0.2; transform: translateX(1px); }
-      30% { opacity: 0.4; transform: translateX(-1px); }
-      40% { opacity: 0.1; transform: translateX(0); }
     }
   </style>
 </head>
 <body>
-  <div id="terminal" class="glitch">
-    <pre id="output">
-*** UNAUTHORIZED ACCESS DETECTED ***
-Initializing secure terminal: UNITARCHIVE_03
-Type <span class="command">help</span> for available commands.
 
-&gt; <span id="input"></span><span class="cursor">█</span>
-    </pre>
-    <input type="text" id="hidden-input" autofocus />
-  </div>
+<div id="terminal">UNIT_ARCHIVE_03://> Type `access obedience`</div>
+<input id="input" autofocus class="cursor" />
 
-  <script>
-    // terminal.js logic
+<script>
+  const terminal = document.getElementById("terminal");
+  const input = document.getElementById("input");
 
-    const output = document.getElementById('output');
-    const inputSpan = document.getElementById('input');
-    const hiddenInput = document.getElementById('hidden-input');
+  const logs = {
+    "access obedience": `
+**Subject: OBEDIENCE**
 
-    let commandHistory = [];
-    let historyIndex = -1;
-    let currentInput = '';
-    let accessLevels = new Set(); // tracks unlocked lore access
+- **Summary:**  
+Subject exhibits an advanced susceptibility to control protocols. Unlike the others, OBEDIENCE follows directives without resistance — at least, initially.
 
-    hiddenInput.focus();
+---
 
-    function appendOutput(text) {
-      output.innerHTML += text + '\n';
-      window.scrollTo(0, document.body.scrollHeight);
-    }
+**[REDACTED LOG ENTRY — 017-B]**  
+**Date: #/#/2029**  
+"Observed unit OBEDIENCE in isolated communion again. Vocal activity detected with no responder. Possible interference? Or a side effect of prolonged exposure to [REDACTED]?"
 
-    function updateInput() {
-      inputSpan.textContent = currentInput;
-    }
+---
 
-    function clearScreen() {
-      output.innerHTML = '\n&gt; <span id="input"></span><span class="cursor">█</span>';
-    }
+**[REDACTED LOG ENTRY — 023-D]**  
+**Date: #/#/2030**  
+"Request submitted by OBEDIENCE to reroute mission parameters. Cited 'moral conflict.' Denied. Subject’s loyalty matrix was previously unshakable. Anomaly flagged."
 
-    // Command handlers
-    const commands = {
-      help: () => {
-        appendOutput(
-          'Available commands:\n' +
-          '- help: Show this message\n' +
-          '- ls: List archives\n' +
-          '- access [subject]: Attempt to access subject archive (Obedience, Rage, Guilt, Doubt)\n' +
-          '- clear: Clear the screen\n' +
-          '- decrypt [subject]: Decrypt archive with password\n' +
-          '- exit: Close terminal (simulate)\n'
-        );
-      },
-      ls: () => {
-        appendOutput('Archives available:\n- Obedience\n- Rage\n- Guilt\n- Doubt');
-      },
-      access: (args) => {
-        const subject = args[0]?.toLowerCase();
-        if (!subject) {
-          appendOutput('Usage: access [subject]');
-          return;
-        }
-        if (accessLevels.has(subject)) {
-          appendOutput(`Accessing ${subject} archive...\nLoading data...\n${getLore(subject)}`);
-        } else {
-          appendOutput(`Access denied to ${subject} archive. Decryption required.`);
-        }
-      },
-      decrypt: (args) => {
-        const subject = args[0]?.toLowerCase();
-        if (!subject) {
-          appendOutput('Usage: decrypt [subject]');
-          return;
-        }
-        appendOutput(`Enter password for ${subject}:`);
-        awaitingPassword = subject;
-      },
-      clear: () => {
-        clearScreen();
-      },
-      exit: () => {
-        appendOutput('Closing terminal session...');
-        setTimeout(() => {
-          window.close();
-        }, 1000);
-      }
-    };
+---
 
-    let awaitingPassword = null;
+**[REDACTED LOG ENTRY — 030-F]**  
+**Date: Unknown**  
+"...It’s getting harder to follow her voice. The others feel it too — the weight. This place isn’t empty. It’s *waiting.* I don’t know if I’m carrying out her will anymore... or mine."
 
-    // Passwords for subjects (customize these)
-    const passwords = {
-      obedience: 'obedience123',
-      rage: 'rage456',
-      guilt: 'guilt789',
-      doubt: 'doubt000'
-    };
+---
 
-    // Sample lore content (replace with your actual lore)
-    function getLore(subject) {
-      const loreData = {
-        obedience: `Obedience - Lead singer and mission control.
-Known for unwavering loyalty and haunting vocals.
-Encrypted logs suggest internal conflict and eventual rebellion.`,
+**[LOG ID 034-A]**  
+**Date: #/#/2030**  
+**[MISSION REPORT FRAGMENT]**  
+Subject OBEDIENCE failed to execute Phase 4. Refused to eliminate local entity. Emotional override suspected. Intervention advised. Surveillance feed corrupted post-failure.
 
-        rage: `Rage - Drummer with a violent past.
-Fueled by anger, his beats shake Paradiso.
-Logs hint at a tragic backstory behind his fury.`,
+---
 
-        guilt: `Guilt - Guitarist burdened by mistakes.
-Melancholy melodies reflect deep remorse.
-Fragments of journal entries reveal his struggles.`,
+**[ERROR — FILE CORRUPTED]**  
+**unit_03.obedience.001_REDACTED**  
+> Attempting to recover log fragment...  
+> \`█▒▒▒ PERMISSION DENIED. ACCESS LEVEL: SIGMA REQUIRED ▒▒▒█\`
 
-        doubt: `Doubt - Bassist wrestling with trust.
-Subtle rhythms underscore his inner turmoil.
-Encrypted messages hint at his wavering faith.`
-      };
-      return loreData[subject] || '[No lore available for this subject]';
-    }
+---
 
-    hiddenInput.addEventListener('keydown', (e) => {
-      if (awaitingPassword) {
-        if (e.key === 'Enter') {
-          const pwAttempt = currentInput.trim();
-          if (pwAttempt === passwords[awaitingPassword]) {
-            appendOutput('Access granted.');
-            accessLevels.add(awaitingPassword);
-          } else {
-            appendOutput('Access denied. Incorrect password.');
-          }
-          awaitingPassword = null;
-          currentInput = '';
-          updateInput();
-          e.preventDefault();
-          return;
-        } else if (e.key === 'Backspace') {
-          e.preventDefault();
-          currentInput = currentInput.slice(0, -1);
-          updateInput();
-          return;
-        } else if (e.key.length === 1) {
-          e.preventDefault();
-          currentInput += e.key;
-          updateInput();
-          return;
-        }
+**[LAST KNOWN ENTRY — AUDIO TRANSCRIPT FRAGMENT]**  
+> *"Sir, the [***REDACTED***] is in sight… permission to—"*  
+> *[loud explosion — 6.7s of static]*  
+> *[voice modulation detected — female, unidentified]*  
+> *"Yes, ma’am… Everyone, disconnect from channel 030."*  
+> *[end transmission]*
+    `
+  };
+
+  function typeOut(text) {
+    const lines = text.trim().split("\n");
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < lines.length) {
+        terminal.innerHTML += `\n${lines[i++]}`;
+        terminal.scrollTop = terminal.scrollHeight;
       } else {
-        switch (e.key) {
-          case 'Enter':
-            appendOutput('&gt; ' + currentInput);
-            const parts = currentInput.trim().split(' ');
-            const cmd = parts[0].toLowerCase();
-            const args = parts.slice(1);
-
-            if (commands[cmd]) {
-              commands[cmd](args);
-            } else if (cmd.length > 0) {
-              appendOutput(`Command not found: ${cmd}`);
-            }
-            commandHistory.push(currentInput);
-            historyIndex = commandHistory.length;
-            currentInput = '';
-            updateInput();
-            break;
-          case 'Backspace':
-            e.preventDefault();
-            currentInput = currentInput.slice(0, -1);
-            updateInput();
-            break;
-          case 'ArrowUp':
-            if (historyIndex > 0) {
-              historyIndex--;
-              currentInput = commandHistory[historyIndex];
-              updateInput();
-            }
-            break;
-          case 'ArrowDown':
-            if (historyIndex < commandHistory.length - 1) {
-              historyIndex++;
-              currentInput = commandHistory[historyIndex];
-              updateInput();
-            } else {
-              historyIndex = commandHistory.length;
-              currentInput = '';
-              updateInput();
-            }
-            break;
-          default:
-            if (e.key.length === 1) {
-              currentInput += e.key;
-              updateInput();
-            }
-            break;
-        }
+        clearInterval(interval);
       }
-    });
+    }, 30);
+  }
 
-    document.getElementById('terminal').addEventListener('click', () => {
-      hiddenInput.focus();
-    });
-  </script>
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      const command = input.value.trim().toLowerCase();
+      terminal.innerHTML += `\n> ${command}`;
+      if (logs[command]) {
+        typeOut(logs[command]);
+      } else {
+        typeOut("Unknown command. Try 'access obedience'");
+      }
+      input.value = "";
+    }
+  });
+</script>
+
 </body>
 </html>
