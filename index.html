@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UNITARCHIVE_03</title>
+  <style>
+    /* Terminal style + heavy glitch */
+
+    body {
+      background-color: black;
+      margin: 0;
+      padding: 0;
+      font-family: 'Courier New', Courier, monospace;
+      color: #00ff00;
+      overflow: hidden;
+    }
+
+    #terminal {
+      padding: 20px;
+      white-space: pre-wrap;
+      min-height: 100vh;
+      animation: flicker 2s infinite;
+      text-shadow: 0 0 2px #0f0, 0 0 5px #0f0;
+      position: relative;
+    }
+
+    pre {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .cursor {
+      color: white;
+      animation: blink 1s steps(1) infinite;
+    }
+
+    .command {
+      color: #55ff55;
+      font-weight: bold;
+    }
+
+    input#hidden-input {
+      position: absolute;
+      top: -9999px;
+    }
+
+    /* Blinking Cursor */
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* Terminal Glitch Flicker */
+    @keyframes flicker {
+      0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        opacity: 1;
+      }
+      20%, 24%, 55% {
+        opacity: 0.1;
+      }
+    }
+
+    /* Occasional character distortion */
+    #terminal.glitch::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -2px;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 255, 0, 0.05),
+        rgba(0, 255, 0, 0.05) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      pointer-events: none;
+      z-index: 1;
+      animation: glitch-flicker 0.3s infinite;
+    }
+
+    /* Additional flicker for corruption */
+    @keyframes glitch-flicker {
+      0%, 100% { opacity: 0.1; transform: translateX(0); }
+      10% { opacity: 0.3; transform: translateX(-1px); }
+      20% { opacity: 0.2; transform: translateX(1px); }
+      30% { opacity: 0.4; transform: translateX(-1px); }
+      40% { opacity: 0.1; transform: translateX(0); }
+    }
+  </style>
+</head>
+<body>
+  <div id="terminal" class="glitch">
+    <pre id="output">
+*** UNAUTHORIZED ACCESS DETECTED ***
+Initializing secure terminal: UNITARCHIVE_03
+Type <span class="command">help</span> for available commands.
+
+&gt; <span id="input"></span><span class="cursor">█</span>
+    </pre>
+    <input type="text" id="hidden-input" autofocus />
+  </div>
+
+  <script>
+    // terminal.js logic
+
+    const output = document.getElementById('output');
+    const inputSpan = document.getElementById('input');
+    const hiddenInput = document.getElementById('hidden-input');
+
+    let commandHistory = [];
+    let historyIndex = -1;
+    let currentInput = '';
+    let accessLevels = new Set(); // tracks unlocked lore access
+
+    hiddenInput.focus();
+
+    function appendOutput(text) {
+      output.innerHTML += text + '\n';
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function updateInput() {
+      inputSpan.textContent = currentInput;
+    }
+
+    function clearScreen() {
+      output.innerHTML = '\n&gt; <span id="input"></span><span class="cursor">█</span>';
+    }
+
+    // Command handlers
+    const commands = {
+      help: () => {
+        appendOutput(
+          'Available commands:\n' +
+          '- help: Show this message\n' +
+          '- ls: List archives\n' +
+          '- access [subject]: Attempt to access subject archive (Obedience, Rage, Guilt, Doubt)\n' +
+          '- clear: Clear the screen\n' +
+          '- decrypt [subject]: Decrypt archive with password\n' +
+          '- exit: Close terminal (simulate)\n'
+        );
+      },
+      ls: () => {
+        appendOutput('Archives available:\n- Obedience\n- Rage\n- Guilt\n- Doubt');
+      },
+      access: (args) => {
+        const subject = args[0]?.toLowerCase();
+        if (!subject) {
+          appendOutput('Usage: access [subject]');
+          return;
+        }
+        if (accessLevels.has(subject)) {
+          appendOutput(`Accessing ${subject} archive...\nLoading data...\n${getLore(subject)}`);
+        } else {
+          appendOutput(`Access denied to ${subject} archive. Decryption required.`);
+        }
+      },
+      decrypt: (args) => {
+        const subject = args[0]?.toLowerCase();
+        if (!subject) {
+          appendOutput('Usage: decrypt [subject]');
+          return;
+        }
+        appendOutput(`Enter password for ${subject}:`);
+        awaitingPassword = subject;
+      },
+      clear: () => {
+        clearScreen();
+      },
+      exit: () => {
+        appendOutput('Closing terminal session...');
+        setTimeout(() => {
+          window.close();
+        }, 1000);
+      }
+    };
+
+    let awaitingPassword = null;
+
+    // Passwords for subjects (customize these)
+    const passwords = {
+      obedience: 'obedience123',
+      rage: 'rage456',
+      guilt: 'guilt789',
+      doubt: 'doubt000'
+    };
+
+    // Sample lore content (replace with your actual lore)
+    function getLore(subject) {
+      const loreData = {
+        obedience: `Obedience - Lead singer and mission control.
+Known for unwavering loyalty and haunting vocals.
+Encrypted logs suggest internal conflict and eventual rebellion.`,
+
+        rage: `Rage - Drummer with a violent past.
+Fueled by anger, his beats shake Paradiso.
+Logs hint at a tragic backstory behind his fury.`,
+
+        guilt: `Guilt - Guitarist burdened by mistakes.
+Melancholy melodies reflect deep remorse.
+Fragments of journal entries reveal his struggles.`,
+
+        doubt: `Doubt - Bassist wrestling with trust.
+Subtle rhythms underscore his inner turmoil.
+Encrypted messages hint at his wavering faith.`
+      };
+      return loreData[subject] || '[No lore available for this subject]';
+    }
+
+    hiddenInput.addEventListener('keydown', (e) => {
+      if (awaitingPassword) {
+        if (e.key === 'Enter') {
+          const pwAttempt = currentInput.trim();
+          if (pwAttempt === passwords[awaitingPassword]) {
+            appendOutput('Access granted.');
+            accessLevels.add(awaitingPassword);
+          } else {
+            appendOutput('Access denied. Incorrect password.');
+          }
+          awaitingPassword = null;
+          currentInput = '';
+          updateInput();
+          e.preventDefault();
+          return;
+        } else if (e.key === 'Backspace') {
+          currentInput = currentInput.slice(0, -1);
+          updateInput();
+          e.preventDefault();
+          return;
+        } else if (e.key.length === 1) {
+          currentInput += e.key;
+          updateInput();
+          e.preventDefault();
+          return;
+        }
+      } else {
+        switch (e.key) {
+          case 'Enter':
+            appendOutput('&gt; ' + currentInput);
+            const parts = currentInput.trim().split(' ');
+            const cmd = parts[0].toLowerCase();
+            const args = parts.slice(1);
+
+            if (commands[cmd]) {
+              commands[cmd](args);
+            } else if (cmd.length > 0) {
+              appendOutput(`Command not found: ${cmd}`);
+            }
+            commandHistory.push(currentInput);
+            historyIndex = commandHistory.length;
+            currentInput = '';
+            updateInput();
+            break;
+          case 'Backspace':
+            currentInput = currentInput.slice(0, -1);
+            updateInput();
+            break;
+          case 'ArrowUp':
+            if (historyIndex > 0) {
+              historyIndex--;
+              currentInput = commandHistory[historyIndex];
+              updateInput();
+            }
+            break;
+          case 'ArrowDown':
+            if (historyIndex < commandHistory.length - 1) {
+              historyIndex++;
+              currentInput = commandHistory[historyIndex];
+              updateInput();
+            } else {
+              historyIndex = commandHistory.length;
+              currentInput = '';
+              updateInput();
+            }
+            break;
+          default:
+            if (e.key.length === 1) {
+              currentInput += e.key;
+              updateInput();
+            }
+            break;
+        }
+      }
+    });
+
+    document.getElementById('terminal').addEventListener('click', () => {
+      hiddenInput.focus();
+    });
+  </script>
+</body>
+</html>
