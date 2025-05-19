@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>UNIT TERMINAL</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UNIT ARCHIVE TERMINAL</title>
   <style>
     body {
       background-color: black;
@@ -11,22 +11,27 @@
       font-family: monospace;
       margin: 0;
       padding: 20px;
-      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
     #terminal {
+      flex-grow: 1;
+      overflow-y: auto;
       white-space: pre-wrap;
       line-height: 1.4;
-      height: 90vh;
-      overflow-y: auto;
+      border: 2px solid #00ffcc;
+      padding: 10px;
+      margin-bottom: 10px;
     }
     #input {
       background: black;
       border: none;
       color: #00ffcc;
       font-family: monospace;
-      font-size: 1em;
-      width: 100%;
+      font-size: 1.2em;
       outline: none;
+      width: 100%;
     }
     .cursor::after {
       content: "_";
@@ -35,20 +40,43 @@
     @keyframes blink {
       50% { opacity: 0; }
     }
+    /* Glitch effect */
+    @keyframes glitch {
+      0% {
+        text-shadow: 2px 0 red;
+      }
+      20% {
+        text-shadow: -2px 0 cyan;
+      }
+      40% {
+        text-shadow: 2px 2px red;
+      }
+      60% {
+        text-shadow: -2px -2px cyan;
+      }
+      80% {
+        text-shadow: 2px 0 blue;
+      }
+      100% {
+        text-shadow: none;
+      }
+    }
+    .glitch {
+      animation: glitch 1s infinite;
+    }
   </style>
 </head>
 <body>
+  <div id="terminal">UNIT_ARCHIVE_03://> Type "help" for commands.</div>
+  <input id="input" autofocus class="cursor" autocomplete="off" spellcheck="false" />
+  <script>
+    const terminal = document.getElementById("terminal");
+    const input = document.getElementById("input");
 
-<div id="terminal">UNIT_ARCHIVE_03://> Type `access obedience`</div>
-<input id="input" autofocus class="cursor" />
+    let obedienceUnlocked = false;
+    const obediencePassword = "sigma2029";
 
-<script>
-  const terminal = document.getElementById("terminal");
-  const input = document.getElementById("input");
-
-  const logs = {
-    "access obedience": `
-**Subject: OBEDIENCE**
+    const obedienceLog = `**Subject: OBEDIENCE**
 
 - **Summary:**  
 Subject exhibits an advanced susceptibility to control protocols. Unlike the others, OBEDIENCE follows directives without resistance — at least, initially.
@@ -92,36 +120,103 @@ Subject OBEDIENCE failed to execute Phase 4. Refused to eliminate local entity. 
 > *[loud explosion — 6.7s of static]*  
 > *[voice modulation detected — female, unidentified]*  
 > *"Yes, ma’am… Everyone, disconnect from channel 030."*  
-> *[end transmission]*
-    `
-  };
+> *[end transmission]*`;
 
-  function typeOut(text) {
-    const lines = text.trim().split("\n");
-    let i = 0;
-    const interval = setInterval(() => {
-      if (i < lines.length) {
-        terminal.innerHTML += `\n${lines[i++]}`;
-        terminal.scrollTop = terminal.scrollHeight;
-      } else {
-        clearInterval(interval);
-      }
-    }, 30);
-  }
+    function appendLine(text = "") {
+      terminal.innerHTML += "\n" + text;
+      terminal.scrollTop = terminal.scrollHeight;
+    }
 
-  input.addEventListener("keydown", function (e) {
-    if (e.key === "Enter") {
-      const command = input.value.trim().toLowerCase();
-      terminal.innerHTML += `\n> ${command}`;
-      if (logs[command]) {
-        typeOut(logs[command]);
-      } else {
-        typeOut("Unknown command. Try 'access obedience'");
-      }
+    function simulateTyping(text, delay = 30) {
+      return new Promise((resolve) => {
+        let i = 0;
+        const interval = setInterval(() => {
+          if (i < text.length) {
+            terminal.innerHTML += text[i];
+            terminal.scrollTop = terminal.scrollHeight;
+            i++;
+          } else {
+            clearInterval(interval);
+            resolve();
+          }
+        }, delay);
+      });
+    }
+
+    function clearInput() {
       input.value = "";
     }
-  });
-</script>
 
+    async function handleDecrypt(command) {
+      appendLine("> " + command);
+      appendLine("Starting decryption...");
+      await simulateTyping("▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░\n", 40);
+      await new Promise(r => setTimeout(r, 400));
+      await simulateTyping("Decrypting data... 100%\n", 50);
+      appendLine("\nDecryption complete.");
+      appendLine(`Password for OBEDIENCE log is: "${obediencePassword}"`);
+      obedienceUnlocked = true;
+    }
+
+    async function handleAccess(command, param) {
+      appendLine("> " + command + " " + param);
+      if (!obedienceUnlocked) {
+        appendLine("ERROR: ACCESS DENIED. Please decrypt log first.");
+        return;
+      }
+      if (param === obediencePassword) {
+        await simulateTyping(obedienceLog + "\n", 15);
+      } else {
+        appendLine("ERROR: INVALID PASSWORD.");
+      }
+    }
+
+    async function processCommand(inputText) {
+      const parts = inputText.trim().toLowerCase().split(" ");
+      const cmd = parts[0];
+      const param = parts.slice(1).join(" ");
+
+      switch(cmd) {
+        case "help":
+          appendLine("> help");
+          appendLine("Commands:");
+          appendLine("- decrypt obedience  // decrypt the obedience log");
+          appendLine("- access [password]  // access the obedience log with password");
+          appendLine("- clear              // clear the terminal");
+          break;
+        case "decrypt":
+          if (param === "obedience") {
+            await handleDecrypt(inputText);
+          } else {
+            appendLine("> " + inputText);
+            appendLine("Unknown decrypt target.");
+          }
+          break;
+        case "access":
+          if (param.length > 0) {
+            await handleAccess(cmd, param);
+          } else {
+            appendLine("> access");
+            appendLine("Missing password parameter.");
+          }
+          break;
+        case "clear":
+          terminal.innerHTML = "";
+          break;
+        default:
+          appendLine("> " + inputText);
+          appendLine("Unknown command. Type 'help' for list.");
+      }
+    }
+
+    input.addEventListener("keydown", async e => {
+      if (e.key === "Enter") {
+        const command = input.value;
+        clearInput();
+        await processCommand(command);
+      }
+    });
+
+  </script>
 </body>
 </html>
