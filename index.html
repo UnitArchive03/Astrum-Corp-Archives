@@ -226,14 +226,14 @@ Encrypted messages hint at his wavering faith.`
           e.preventDefault();
           return;
         } else if (e.key === 'Backspace') {
+          e.preventDefault();
           currentInput = currentInput.slice(0, -1);
           updateInput();
-          e.preventDefault();
           return;
         } else if (e.key.length === 1) {
+          e.preventDefault();
           currentInput += e.key;
           updateInput();
-          e.preventDefault();
           return;
         }
       } else {
@@ -255,6 +255,7 @@ Encrypted messages hint at his wavering faith.`
             updateInput();
             break;
           case 'Backspace':
+            e.preventDefault();
             currentInput = currentInput.slice(0, -1);
             updateInput();
             break;
